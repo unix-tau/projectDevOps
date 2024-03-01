@@ -60,6 +60,9 @@ services:
       - "50000:50000"
     volumes:
       - jenkins_data:/var/jenkins_home
+    environment:
+      - JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+      - M2_HOME=/usr/share/maven
 
 networks:
   sonarnet:
