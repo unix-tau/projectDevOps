@@ -1,0 +1,14 @@
+---
+- name: Execute echo statement on 192.168.18.13
+  hosts: 192.168.18.13
+  become: false  # No need for privilege escalation in this case
+
+  tasks:
+    - name: Execute echo statement
+      command: hostname
+      register: echo_output
+
+    - name: Display echo output
+      debug:
+        var: echo_output.stdout
+

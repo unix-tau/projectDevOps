@@ -1,0 +1,33 @@
+# File: install_minikube.yml
+---
+- name: Install Minikube
+  hosts: myhosts
+  become: yes  # Run tasks as a privileged user (sudo)
+  remote_user: kkk  # Specify the remote user for the SSH connection
+
+
+  tasks:
+    - name: Install dependencies
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - curl
+        - conntrack
+        - sshpass  # Install sshpass for password-based SSH
+
+
+    - name: Download and install Minikube
+      shell: curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && sudo install minikube-linux-amd64 /usr/local/bin/minikube
+      args:
+        executable: /bin/bash
+
+    - name: Verify Minikube installation
+      command: minikube version
+      changed_when: false  # Ignore the 'changed' status for this task
+      
+      
+    - name: SSH to remote host and execute a command
+      command: sshpass -p 'java#tau$' ssh kkk@192.168.18.13 'echo Hello from Minikube installation'
+      ignore_errors: yes  # Ignore errors in case password-based SSH login fails
+

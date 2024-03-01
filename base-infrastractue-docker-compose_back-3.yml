@@ -1,0 +1,79 @@
+version: '3'
+
+services:
+  sonarqube:
+    image: sonarqube:8.9.1-community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONARQUBE_JDBC_URL=jdbc:h2:tcp://sonarqube_db/sonar
+      - sonar.embeddedDatabase.port=9031  # Set the embedded database port
+    networks:
+      - sonarnet
+    depends_on:
+      - sonarqube_db
+
+  sonarqube_db:
+    image: postgres:13.4-alpine
+    container_name: sonarqube_db
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    networks:
+      - sonarnet
+
+  gitlab:
+    image: gitlab:tau_project_works
+    container_name: gitlab
+    ports:
+      - "80:80"
+      - "443:443"
+      - "2222:22"
+    environment:
+      - GITLAB_OMNIBUS_CONFIG=external_url 'http://gitlab.example.com'
+    volumes:
+      - gitlab_config:/etc/gitlab
+      - gitlab_logs:/var/log/gitlab
+      - gitlab_data:/var/opt/gitlab
+
+  ansible:
+    image: ansible/ubuntu14.04-ansible
+    container_name: ansible
+    command: >
+      /bin/bash -c "
+        apt-get update && \
+        apt-get install -y openssh-client && \
+        mkdir -p /root/.ssh && \
+        cp /ansible/id_rsa /root/.ssh/id_rsa && \
+        cp /ansible/id_rsa.pub /root/.ssh/id_rsa.pub && \
+        chmod 600 /root/.ssh/id_rsa && \
+        chmod 644 /root/.ssh/id_rsa.pub && \
+        echo 'StrictHostKeyChecking no' >> /etc/ssh/ssh_config && \
+        tail -f /dev/null
+      "
+    depends_on:
+      - jenkins
+      - gitlab
+
+  jenkins:
+    image: jenkins_setted_up
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+
+networks:
+  sonarnet:
+    driver: bridge
+
+volumes:
+  jenkins_data:
+  minikube_data:
+  gitlab_config:
+  gitlab_logs:
+  gitlab_data:
+

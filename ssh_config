@@ -1,0 +1,5 @@
+Host 192.168.18.13
+    IdentityFile /root/.ssh/id_rsa
+    UserKnownHostsFile /dev/null
+    StrictHostKeyChecking no
+

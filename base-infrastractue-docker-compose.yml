@@ -1,0 +1,74 @@
+version: '3'
+
+services:
+  sonarqube:
+    image: sonarqube:8.9.1-community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONARQUBE_JDBC_URL=jdbc:h2:tcp://sonarqube_db/sonar
+      - sonar.embeddedDatabase.port=9031  # Set the embedded database port
+    networks:
+      - sonarnet
+    depends_on:
+      - sonarqube_db
+
+  sonarqube_db:
+    image: postgres:13.4-alpine
+    container_name: sonarqube_db
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    networks:
+      - sonarnet
+
+  gitlab:
+    image: gitlab:tau_project_works
+    container_name: gitlab
+    ports:
+      - "80:80"
+      - "443:443"
+      - "2222:22"
+    environment:
+      - GITLAB_OMNIBUS_CONFIG=external_url 'http://gitlab.example.com'
+    volumes:
+      - gitlab_config:/etc/gitlab
+      - gitlab_logs:/var/log/gitlab
+      - gitlab_data:/var/opt/gitlab
+
+
+  ansible:
+    image: geerlingguy/docker-ubuntu2204-ansible
+    container_name: ansible
+    command: " tail -f /dev/null "
+    ports:
+      - "2221:22"  # Map host port 2222 to container port 22 (SSH)
+    volumes:
+      - ./ansible_playbooks:/ansible/playbooks  # Mount your Ansible playbooks directory
+      - ./ansible_inventory:/ansible/inventory  # Mount your Ansible inventory directory
+      - ./ssh_keys:/root/.ssh  # Mount a volume for storing SSH keys
+
+
+
+  jenkins:
+    image: jenkins_setted_up
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+
+networks:
+  sonarnet:
+    driver: bridge
+
+volumes:
+  jenkins_data:
+  minikube_data:
+  gitlab_config:
+  gitlab_logs:
+  gitlab_data:
+

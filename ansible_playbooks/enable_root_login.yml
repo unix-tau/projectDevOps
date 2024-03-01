@@ -1,0 +1,29 @@
+---
+- name: Enable root login via SSH
+  hosts: myhosts
+  become: yes  # Run tasks as a privileged user (sudo)
+  remote_user: kkk  # Specify the user to connect to the remote host
+
+  tasks:
+    - name: Add PermitRootLogin to sshd_config
+      shell: >
+        echo "SSH attempt completed";
+        echo "Task completed on delegate host"
+
+    - name: Debug
+      debug:
+        msg: "Debug message before shell task"
+
+- name: Update the authorized key with echo statements
+  shell: >
+    echo "Trying to SSH into 192.168.18.13 as kkk with password: {{ ssh_password }}";
+    sshpass -p "{{ ssh_password }}" ssh kkk@192.168.18.13 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null;
+    echo "SSH attempt completed";
+    echo "Task completed on delegate host"
+  delegate_to: 192.168.18.13
+  changed_when: false
+
+- name: Debug
+  debug:
+    msg: "Debug message after shell task"
+
